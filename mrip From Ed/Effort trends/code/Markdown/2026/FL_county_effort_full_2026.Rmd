@@ -1,0 +1,671 @@
+---
+title: "Marine Recreational Fishing Effort Report 2025: `r tmplist$county` County"
+author:  
+- "A data report for `r tmplist$recipient` prepared by:"
+- "Edward Camp, Associate Professor of Fisheries and Aquaculture Governance, University of Florida, edvcamp@ufl.edu" 
+- "Anna Braswell, Assistant Professor of Coastal Ecosystems and Watersheds, University of Florida, a.braswell@ufl.edu"
+- "`r tmplist$agent``r tmplist$separator` `r tmplist$agent_title``r tmplist$separator` `r tmplist$agent_email`"  
+output:
+  word_document:
+    toc: true  
+    pandoc_args:
+     '--lua-filter=page-break1.lua'
+bibliography: report_refs.bib
+
+---
+
+```{r global_controls, echo=FALSE, message=FALSE, warning = FALSE}
+##############################################################################
+### CONTROL PANEL ###
+##############################################################################
+
+#offline or online
+online <- "U:/UF/Extension specific/CFEE/"
+offline <- "C:/Users/edvcamp/Desktop/running files offline Summer 2026/FL/"
+wd_location <- offline
+
+
+  #Spatial 
+    #To be Changed
+      stname <- tmplist$state
+      stname_abrv <- tmplist$state_abrev
+      coast <- tmplist$coast  #this corresponds to "sub_reg" in the data file, 7= gulf, 6= atl
+      cntname <- tmplist$county_R_name
+      #regname <- "East Central FL"
+      #cntregc <- c("Volusia", "Brevard")
+      #coastname <- "Atlantic"  #Not applicable for any states other than Florida
+
+
+      yrstrt <- tmplist$yrstrt   #1995
+ 	    yrend <- tmplist$yrend     #2019
+ 	    years <- seq(yrstrt,yrend,1)
+ 	    
+ 	    yrstrt_seas <- tmplist$yrstrt_seas
+      yrend_seas <- tmplist$yrend_seas
+      years_seas <- seq(yrstrt_seas,yrend_seas,1)
+
+```
+
+
+\newpage
+
+## Abbreviations and Definitions  
+**APAIS**: Access Point Angler Intercept Survey, the survey implemented by MRIP to collect information about angling. In `r tmplist$state`, the APAIS is implemented by the Florida Fish and Wildlife Conservation Commission (FWC).
+
+**Area**: For the MRIP survey, the variable “area” describes the location fished, in general terms of distance from shore. The three areas described include (1) **inland**, which includes most waters that are not part of the open ocean or gulf, (2) **nearshore waters**, which are open ocean/gulf but within state-managed waters (up to 3 miles from shore in the Atlantic, 10 in the Gulf of Mexico), and (3) **offshore waters** which describes areas beyond state-managed waters (so areas greater than 3 miles from shore in the Atlantic, greater than 10 miles from shore in the Gulf of Mexico).
+
+**Effort**: The amount of fishing trips taken during a place and time. This report describes the number of fishing trips taken to `r tmplist$county` County. It describes trips per year (overall trips and trips by **area** or **mode**), and then in also describes the seasonal effort patterns by looking at the proportions of trips per month.
+
+**Mode**: For the MRIP survey, the “mode” variable describes the type of fishing trip. The three modes used are: (1) **private/rental vessel** which includes fishers in their or rented boats, (2) **for-hire vessel**, which includes trips fishers make with guides and charters (**note, head- and party boats are considered for-hire but are surveyed under a different NOAA Fisheries program than used for these reports**), and (3) **shore-based**, which includes all non-boat fishing (piers, docks, beaches, etc.).
+
+**MRIP**: Marine Recreational Information Program, which is operated by NMFS to survey coastal anglers. The MRIP data are what this report uses.
+
+**NMFS**: National Marine Fisheries Service. The NMFS oversees the MRIP, as well as many other aspects of federal fisheries management.   
+
+\newpage
+
+## Overview Summary
+*Why this report might be important*  
+Marine recreational fisheries are especially important to `r tmplist$state`, which boasts the greatest number of saltwater fishers (2.4m; [@USFWS_2011]) and total economic output from saltwater fishing ($8B annually; [@NOAA_2017]) of any state in the country. These fisheries provide enjoyment to fishers, support local economies, and affect fish populations and ecosystems. All of these effects of fishing depend on fishing “**effort**”—the number of fishing trips made. More effort will, all else being equal, suggest more people enjoy fishing, more money is moving around local economies, and usually more fish are being harvested (which can affect fish populations). **This report uses publicly available data collected by federal and state agencies to describe the marine recreational fishing dynamics of `r tmplist$county` County, `r tmplist$state`**. We believe this information is useful to several people and entities in `r tmplist$county` County and the broader `r tmplist$region` region, such as the `r tmplist$recipient`, as well as county commissioners and the fishing industry.
+
+*What this report can be used for*  
+This report provides information about marine recreational fishing effort dynamics in `r tmplist$county` County. The report first describes trends in annual fishing effort--in terms of overall effort, and by **mode** and **area** for about the last `r tmplist$num_mrip_years` years. This information may help understand:  
+
+* Changes in overall fishing expenditures and local fishing-related revenue. For example, increasing fishing effort would translate to increased local revenue from fishing.
+* Changes in availability or enjoyment of fishing. For example, decreasing trends in fishing effort might reflect environmental disturbances like harmful algal blooms.
+* Changes in the amount of “fishing pressure” or mortality exerted on fish populations. More effort will almost always mean more harvest and fishing mortality—though it is critical to understand that **fishing effort information alone is not enough to understand fishing sustainability.**
+
+This report also describes seasonal trends (percent of trips taken each month) averaged over years `r tmplist$mrip_seas_years`. This information is reported in terms of overall effort, and by **mode** and **area**. Seasonal trends in fishing effort might be used slightly differently. These trends can inform:  
+
+* Timing of advertisements for tourism-based local fishing. For example, does it make more sense to advertise for `r tmplist$county` County recreational fishing more in the winter or in the summer? This information can be fine-tuned for the fishing **mode**, especially the for-hire mode.
+* Local seasonal policies that might affect fishing, like shoreline access, as well as any policies affecting tourism (“peak” or “off-season” rates, etc.).
+* Some inference about how state fisheries management policies, like harvest season or fishing closures, might affect local fishing and related economies. For example, a harvest closure for a popular species that occurs during peak for-hire fishing season might be especially costly to the local economy. Conversely, a brief or “mini” season for an especially desired species that coincides with peak for-hire fishing season might boost local economies. 
+
+Together, this information is intended to help local governance entities, like `r tmplist$recipient`, access and use data that can help them better serve their constituents and sustain or improve the economic effects of marine recreational fishing in `r tmplist$county` County.  
+
+*Where the information from this report comes from*  
+All of the data in this report come from the National Oceanic and Atmospheric Administration's (NOAA) National Marine Fisheries Service (NMFS) Marine Recreational Information Program (MRIP). These data are publicly available for download at https://www.fisheries.noaa.gov/recreational-fishing-data/data-downloads. The MRIP program contains information voluntarily provided by anglers at fishing locations surveyed according to a scientifically designed sampling program. Data are continuously collected, but data in this report are for years `r tmplist$mrip_years`. Future reports will show updated data as they are available.  
+
+\newpage
+
+## NOAA Fisheries MRIP background
+*What is MRIP?*  
+The MRIP collects and maintains data about marine recreational fisheries. The MRIP is the part of the NMFS that is involved with the management of federal commercial and recreational fisheries, and NMFS is part of the NOAA. The MRIP allows state and federal researchers and managers to understand things like:  
+
+* How many recreational fishing trips are taken in a region and time period?
+* How many of these trips target a certain species?
+* What are angling catch rates and how are they changing?
+* What are the sizes of fish that are harvested?
+
+These things are important for developing stock assessments that inform fisheries management decisions. The MRIP system includes two main surveys. One is an “access point” or “intercept” survey designed to understand aspects of fishing trips like length of trip, origin, target species, etc. These surveys are called "intercept" because they involve interviewing anglers at access points, such as fishing docks, boat ramps, and shore-based access points like beaches, jetties, and piers. The other survey is mail-based and designed to assess what proportion of the human population in an area is taking fishing trips. Information from the two surveys is combined to estimate some of the information described in the bullet points above, and important for this report—the total amounts of fishing trips (effort) occurring in certain places.   
+
+The MRIP system also describes recreational fishing effort in terms of different types of trips. There are two different classifications-—“**mode**” and “**area**”. **Mode** describes the “type” of fishing trip, and there are three modes:
+
+* shore-based fishing (fishing without a boat, like a jetty, pier, beach, etc.).
+* for-hire fishing (fishing trips where the angler pays someone to take them, including guided or chartered trips) **Note, while headboat and party boats are considered part of the for-hire sector, they are surveyed under a different NOAA Fisheries program in the Southeastern US and their data is not incorporated into these effort estimates.**
+* private/rental (fishing from a personal or rented boat).
+
+While private/rental fishing trips are somewhat the most “obvious” type of fishing, the other two groups are really important as well. In some counties with extensive and accessible shorelines, shore-based fishing trips outnumber all others (especially counties with high amounts of accessible coastlines). For-hire fishing trips may be especially important to consider, since they often have greater expenditures than other types of fishing trips.
+
+**Area** refers to the area fished, in terms of rough distance from shore. There are also three area options:
+
+* inland, which includes most brackish or protected salt waters that are not part of the open ocean or gulf
+* nearshore waters, which are open ocean/gulf but within state-managed waters (less than 3 miles from shore in the Atlantic Ocean, less than 10 miles in the Gulf of Mexico)
+* offshore waters, which are areas beyond state-managed waters (greater than 3 miles from shore in the Atlantic, greater than 10 miles from shore in the Gulf of Mexico.
+
+In many counties, such as `r tmplist$county`, these areas can be used as rough proxies for the type of fishing going on (e.g., inshore vs. offshore fishing). 
+
+*What MRIP information does this report use?*  
+This report uses the estimates from fishing effort derived from MRIP. This means that the information provided here about fishing effort in `r tmplist$county` County is a combination of information from the access point surveys interviewing anglers, as well as the mail-based survey results. The estimates of effort are the most likely number of trips that were taken, but there is some uncertainty around exactly how many trips were made, and this is reported for the annual estimates. This same process is used to estimate how many marine recreational fishing trips in `r tmplist$county` County were made in each mode or area. For the seasonal estimates, only the estimates are provided for simplicity.  
+
+*Additional information about MRIP*  
+A lot of additional information is available about the NMFS MRIP data and how these data are used. We have described the parts of this information that are important to know to understand and best use the data provided in this report.  Additional information directly through NOAA Fisheries at https://www.fisheries.noaa.gov/topic/recreational-fishing-data, as well as through the Marine Resource Education Program, MREP (different from MRIP), for which more information is available at: https://www.gmri.org/our-work/fisheries-convening/mrep-southeast. Finally, the authors of this document can be contacted with any specific questions about NMFS and MRIP.
+
+\newpage
+
+## Overall Recreational Fishing Effort
+This information and figures describe the total marine recreational fishing effort—that is, combined or “pooled” across all **modes** (types of fishing) and **areas** (distances from shore). The data are described first with an annual time series plot (**Figure 1**) that shows how the amount of fishing effort has changed over about the last 25 years. Then we show the percent of annual effort that occurs in each month, which is useful to seeing seasonable patterns within a year.
+
+### Annual Effort Time Series  
+The annual marine recreational fishing effort for all fishing trips from `r tmplist$county` County waters are shown in **Figure 1**. The dark blue line shows the estimate effort--that is, the most likely number of trips in each year. There is uncertainty in this estimate though, and it is shown by the light blue area around the dark blue line (it shows the 95% confidence interval). This means the true number of trips could reasonably have been as great as the upper light blue area, or as low as the lower light blue area in a given year. Smaller light blue areas mean the estimate is more certain, but a complete absence of light blue may indicate the uncertainty was not measurable (often from sparse data). This information is important for understanding how fishing effort has changed over time in `r tmplist$county` County.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning = FALSE)
+```
+
+
+```{r data, echo=FALSE, message=FALSE, warning = FALSE}
+library(data.table)
+library(Hmisc)
+library(dplyr)
+library(survey) 
+
+##############################################################################
+### DATA ###
+##############################################################################
+	### Read in saved data
+		#MRIP
+			#setwd("U:/UF/Extension specific/CFEE/Effort trends/code/Markdown/2025")
+      setwd(paste0(wd_location, "Effort trends/code/Markdown/2026"))
+		  load("fl_2000_2025.RData")
+		  dat_a <- fl_2000_2025
+
+			load("FL_1995_1999.RData")
+			dat_b <- dt_fl
+
+			dat <- rbind(dat_a, dat_b)
+
+
+		#US info
+		#	setwd("U:/UF/Extension specific/CFEE/Effort trends/code/Markdown/2025") 
+  		fips <- read.csv("US_FIPS_Codes.csv", header=T)
+  		states <- unique(fips[,c("state", "state_code")])
+
+
+```
+
+
+```{r derived_controls, echo=FALSE, message=FALSE, warning = FALSE}
+##############################################################################
+### DERIVED CONTROL PANEL ###
+##############################################################################
+    #Derived
+      area_near_ocean <- ifelse(coast==7, 3, 1)   #So, FL gulf near ocean is "3", and FL Atl near ocean is "1"
+      area_far_ocean <- ifelse(coast==7, 4, 2)    #Also FL gulf far ocean is "4", and FL Atl far ocean is "2"
+      counties <- unique(fips[which(fips$state==stname),c("county", "county_code")])
+      stcode <- fips[which(fips$state==stname), c("state_code")] [1]
+      cntcode <- fips[which(fips$state==stname & fips$county==cntname), c("county_code")] 
+      #cntregcode <- as.character(c(fips[which(fips$state==stname & fips$county %in% cntregc), c("county_code")]))
+      stcntycode <- paste(stcode, "_", cntcode, sep="")
+      ocndistplot <- ifelse(coast=="6", "3mi", "10mi")
+
+```
+
+
+```{r data_operations, echo=FALSE, message=FALSE, warning = FALSE}
+##############################################################################
+### DATA OPERATIONS / MANIPULATIONS ###
+##############################################################################
+	#Filtering
+		daty <- dat[year %in% years,]  #Can eventually add other filters in here, like could filter the data by mode, county, etc. 
+
+	#Converting back to data.frame
+		dat1 <- as.data.frame(daty)  #Data tables are great, but will take time to learn how to integrate with code, so turning back to data.frame
+
+		#additional data manipulation aspects
+      dat1$monthc <- as.character(dat1$month)
+      dat1$month_f <- as.factor(ifelse(nchar(dat1$monthc)>1,  dat1$monthc, paste("0", dat1$monthc, sep="")))
+      dat1$cntyf1 <- as.factor(ifelse(nchar(dat1$cnty)==1, paste("00", dat1$cnty, sep=""),
+      					ifelse(nchar(dat1$cnty)==2, paste("0", dat1$cnty, sep=""), dat1$cnty)))
+      dat1$cntyf1[which(is.na(dat1$cntyf1))] <- "099"
+
+  		dat1$mode_f <- as.factor(as.character(dat1$mode_f))
+  		dat1$mode_fx <- as.factor(as.character(dat1$mode_fx))
+  		dat1$area_x <- as.factor(as.character(dat1$area_x))
+  		dat1$cntyf <- as.factor(as.character(dat1$cnty)) 
+  		dat1$st_cnty <- as.factor(as.character(paste(dat1$st, dat1$cntyf, sep="_")))
+  		dat1$st_cnty_res <- as.factor(as.character(paste(dat1$st_res, dat1$cnty_res, sep="_")))
+  		dat1$prim1_common <- capitalize(tolower(dat1$prim1_common))
+  			levels(dat1$prim1_common) <- c(levels(dat1$prim1_common), "No Target")
+  			dat1$prim1_common[which(dat1$prim1_common =="")] <- "No Target"
+  		dat1$prim2_common <- capitalize(tolower(dat1$prim2_common))
+  			levels(dat1$prim2_common) <- c(levels(dat1$prim2_common), "No Target")
+  			dat1$prim2_common[which(dat1$prim2_common =="")] <- "No Target"
+```
+
+
+```{r functions, echo=FALSE, message=FALSE, warning = FALSE}
+##############################################################################
+### DATA ANALYSES AND MODELS ###
+##############################################################################
+
+#main workhorse function, generally used for county by year
+	estfun <- function(df)  
+		{
+
+			#creating dom_id for the different groups you want estimates for
+			df$dom_id <-c(paste(df$year, df$st, df$sub_reg, sep=""))  #here is the domain id only down to year, but subset for the county of concern
+				#if you wanted to go to say, wave, you'd need to add dat1$wave in there too. Example from MRIP code below
+					#dataset$dom_id<-c(paste(dataset$year,dataset$wave,dataset$st,dataset$sub_reg, dataset$mode_fx,dataset$area_x,sep=""))
+			df$dtrip <- 1 		#Ok, I don' tknow what this is, need to sort that out 
+
+			#survey design function, from MRIP
+  			dfpc<-svydesign(ids=~psu_id,strata=~strat_id, weights=~wp_int,nest=TRUE,data=df)  #So...assuming this is the survey design info?
+   				options(survey.lonely.psu = "certainty")
+
+   			#survey estimates function, from MRIP
+ 	 		results<-svyby(~dtrip, ~dom_id, dfpc, svytotal, vartype=c("se","cv"), keep.names=FALSE) #and this shoudl be the engine for estimation?
+  				names(results)<-c("Domain","Trips","SE","PSE")
+
+  			#Creating additional variables
+  			results$year <- as.numeric(substr(results$Domain,1,4))
+  			results$state <- substr(results$Domain,5,6)
+  			#results$mode_fx <- substr(results$Domain,8,8)
+  			results$county_code <- df$cnty[1]  #returns county
+  			results$sub_reg <- df$sub_reg[1]  #returns county
+  		results
+  		}
+
+
+#SEASONAL estimating the effort at each month NOT YEAR. Designed for county
+    estfun_month <- function(df)
+    {
+
+      #creating dom_id for the different groups you want estimates for
+      #df$dom_id <-c(paste(df$year, df$st, df$mode_fx, df$month_f, sep=""))  #here is the domain id only down to year, but subset for the county of concern
+      df$dom_id <-c(paste(df$cntyf1, df$month_f, sep="")) 
+        #if you wanted to go to say, wave, you'd need to add dat1$wave in there too. Example from MRIP code below
+          #dataset$dom_id<-c(paste(dataset$year,dataset$wave,dataset$st,dataset$sub_reg, dataset$mode_fx,dataset$area_x,sep=""))
+      df$dtrip <- 1     #Ok, I don' tknow what this is, need to sort that out 
+
+      #survey design function, from MRIP
+        dfpc<-svydesign(ids=~psu_id,strata=~strat_id, weights=~wp_int,nest=TRUE,data=df)  #So...assuming this is the survey design info?
+          options(survey.lonely.psu = "certainty")
+
+        #survey estimates function, from MRIP
+      results<-svyby(~dtrip, ~dom_id, dfpc, svytotal, vartype=c("se","cv"), keep.names=FALSE) #and this shoudl be the engine for estimation?
+          names(results)<-c("Domain","Trips","SE","PSE")
+
+        #Creating additional variables
+        nchars = nchar(results$Domain)
+        results$county_code <- as.numeric(substr(results$Domain,1,3))
+        #results$year <- as.numeric(substr(results$Domain,1,4))
+        #results$state <- substr(results$Domain,5,6)
+        #results$mode_fx <- substr(results$Domain,4,4)
+        results$month_f <- substr(results$Domain,4,5)
+        
+        # results$sub_reg <- df$sub_reg[1]  #returns county
+      #results
+      #patch to deal with some months not being sampled
+month <- as.factor(c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")) 
+monthdf <- data.frame(month)
+test <- merge(x=results, y=monthdf, by.x="month_f", by.y="month", all.x=TRUE, all.y=TRUE)    #merge them based on year-month
+test[,c('Trips', 'SE', 'PSE')] [is.na(test[,c('Trips', 'SE', 'PSE')])] <- 0 #just change the NA's to zeros, which is correct
+      results <- test
+      results
+      }
+
+
+#SEASONAL estimating the effort at each month NOT YEAR. Designed for county
+  	estfun_mode_month <- function(df)
+		{
+
+			#creating dom_id for the different groups you want estimates for
+			#df$dom_id <-c(paste(df$year, df$st, df$mode_fx, df$month_f, sep=""))  #here is the domain id only down to year, but subset for the county of concern
+			df$dom_id <-c(paste(df$cntyf1, df$mode_fx, df$month_f, sep="")) 
+				#if you wanted to go to say, wave, you'd need to add dat1$wave in there too. Example from MRIP code below
+					#dataset$dom_id<-c(paste(dataset$year,dataset$wave,dataset$st,dataset$sub_reg, dataset$mode_fx,dataset$area_x,sep=""))
+			df$dtrip <- 1 		#Ok, I don' tknow what this is, need to sort that out 
+
+			#survey design function, from MRIP
+  			dfpc<-svydesign(ids=~psu_id,strata=~strat_id, weights=~wp_int,nest=TRUE,data=df)  #So...assuming this is the survey design info?
+   				options(survey.lonely.psu = "certainty")
+
+   			#survey estimates function, from MRIP
+ 	 		results<-svyby(~dtrip, ~dom_id, dfpc, svytotal, vartype=c("se","cv"), keep.names=FALSE) #and this shoudl be the engine for estimation?
+  				names(results)<-c("Domain","Trips","SE","PSE")
+
+  			#Creating additional variables
+  			nchars = nchar(results$Domain)
+  			results$county_code <- as.numeric(substr(results$Domain,1,3))
+  			#results$year <- as.numeric(substr(results$Domain,1,4))
+  			#results$state <- substr(results$Domain,5,6)
+  			results$mode_fx <- substr(results$Domain,4,4)
+  			results$month_f <- substr(results$Domain,5,6)
+  			
+  			# results$sub_reg <- df$sub_reg[1]  #returns county
+  		      #results
+        #patch for counties where a mode or area isn't sampled in a given month in the data set
+        month <- as.factor(c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")) 
+        monthdf <- data.frame(month)
+        test <- merge(x=results, y=monthdf, by.x="month_f", by.y="month", all.x=TRUE, all.y=TRUE)    #merge them based on year-month
+        test[,c('Trips', 'SE', 'PSE')] [is.na(test[,c('Trips', 'SE', 'PSE')])] <- 0 #just change the NA's to zeros, which is correct
+      results <- test
+      results
+  		}
+
+
+#SEASONAL estimating the effort at each month NOT YEAR. Designed for county
+    estfun_area_month <- function(df)
+    {
+
+      #creating dom_id for the different groups you want estimates for
+      #df$dom_id <-c(paste(df$year, df$st, df$mode_fx, df$month_f, sep=""))  #here is the domain id only down to year, but subset for the county of concern
+      df$dom_id <-c(paste(df$cntyf1, df$area_x, df$month_f, sep="")) 
+        #if you wanted to go to say, wave, you'd need to add dat1$wave in there too. Example from MRIP code below
+          #dataset$dom_id<-c(paste(dataset$year,dataset$wave,dataset$st,dataset$sub_reg, dataset$mode_fx,dataset$area_x,sep=""))
+      df$dtrip <- 1     #Ok, I don' tknow what this is, need to sort that out 
+
+      #survey design function, from MRIP
+        dfpc<-svydesign(ids=~psu_id,strata=~strat_id, weights=~wp_int,nest=TRUE,data=df)  #So...assuming this is the survey design info?
+          options(survey.lonely.psu = "certainty")
+
+        #survey estimates function, from MRIP
+      results<-svyby(~dtrip, ~dom_id, dfpc, svytotal, vartype=c("se","cv"), keep.names=FALSE) #and this shoudl be the engine for estimation?
+          names(results)<-c("Domain","Trips","SE","PSE")
+
+        #Creating additional variables
+        nchars = nchar(results$Domain)
+        results$county_code <- as.numeric(substr(results$Domain,1,3))
+        #results$year <- as.numeric(substr(results$Domain,1,4))
+        #results$state <- substr(results$Domain,5,6)
+        results$area_x <- substr(results$Domain,4,4)
+        results$month_f <- substr(results$Domain,5,6)
+        
+        # results$sub_reg <- df$sub_reg[1]  #returns county
+  		      #results
+        #patch for counties where a mode or area isn't sampled in a given month in the data set
+        month <- as.factor(c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")) 
+        monthdf <- data.frame(month)
+        test <- merge(x=results, y=monthdf, by.x="month_f", by.y="month", all.x=TRUE, all.y=TRUE)    #merge them based on year-month
+        test[,c('Trips', 'SE', 'PSE')] [is.na(test[,c('Trips', 'SE', 'PSE')])] <- 0 #just change the NA's to zeros, which is correct
+      results <- test
+      results
+    }
+```    
+
+
+```{r output, echo=FALSE, message=FALSE, warning = FALSE}    
+######################################################
+#### OUTPUT
+######################################################
+
+	### Filters analyses 
+		#County by YEAR
+			df_filt_cnt_all <- filter(dat1, dat1$cntyf %in% c(cntcode))  #Filtering for the county in the control panel
+			df_filt_cnt_Mshore <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$mode_fx==3)  #Filtering for the county in the control panel
+			df_filt_cnt_Mhire <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$mode_fx==5)  #Filtering for the county in the control panel
+			df_filt_cnt_Mpriv <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$mode_fx==7)  #Filtering for the county in the control panel
+
+			df_filt_cnt_AnearO <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$area_x==area_near_ocean)  #Filtering for the county in the control panel
+			df_filt_cnt_AfarO <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$area_x==area_far_ocean)  #Filtering for the county in the control panel
+			df_filt_cnt_Ains <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$area_x==5)  #Filtering for the county in the control panel
+
+      #County by MONTH
+      df_filt_cnt_all_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode))  #Filtering for the county in the control panel
+      df_filt_cnt_Mshore_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$mode_fx==3)  
+      df_filt_cnt_Mhire_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$mode_fx==5)  
+      df_filt_cnt_Mpriv_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$mode_fx==7)  
+
+      df_filt_cnt_AnearO_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$area_x==area_near_ocean)  
+      df_filt_cnt_AfarO_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$area_x==area_far_ocean)  
+      df_filt_cnt_Ains_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$area_x==5)  
+	
+
+	### COUNTY specific results
+		### By YEAR getting results of all, specific modes and areas
+			results_all_cnt <- estfun(df_filt_cnt_all)
+			results_Mshore_cnt <- estfun(df_filt_cnt_Mshore)
+			results_Mhire_cnt <- estfun(df_filt_cnt_Mhire)
+			results_Mpriv_cnt <- estfun(df_filt_cnt_Mpriv)
+			results_AnearO_cnt <- estfun(df_filt_cnt_AnearO)
+			results_AfarO_cnt <- estfun(df_filt_cnt_AfarO)
+			results_Ains_cnt <- estfun(df_filt_cnt_Ains)
+
+    ### by MONTH
+      results_cnt_seas_all <- estfun_month(df_filt_cnt_all_seas)
+
+      results_Mshore_cnt_seas <- tryCatch({estfun_mode_month(df_filt_cnt_Mshore_seas)}, error=function(e){})
+      results_Mhire_cnt_seas <- tryCatch({estfun_mode_month(df_filt_cnt_Mhire_seas)}, error=function(e){})
+      results_Mpriv_cnt_seas <- tryCatch({estfun_mode_month(df_filt_cnt_Mpriv_seas)}, error=function(e){})
+      results_AnearO_cnt_seas <- tryCatch({estfun_area_month(df_filt_cnt_AnearO_seas)}, error=function(e){})
+      results_AfarO_cnt_seas <- tryCatch({estfun_area_month(df_filt_cnt_AfarO_seas)}, error=function(e){})
+      results_Ains_cnt_seas <- tryCatch({estfun_area_month(df_filt_cnt_Ains_seas)}, error=function(e){})
+
+      
+### Plotting functions
+  #Single county plot of all effort (pooled across area and mode)
+		plotfun_c <- function (results, main){
+			results$lcl <- results$Trips-1.96*results$SE
+	  	results$ucl <- results$Trips+1.96*results$SE
+
+			x = results$year
+			y = results$Trips 
+			ly = results$lcl
+			uy = results$ucl 
+
+			ymax <- 1.25*max(uy)
+		  ymin <- .90*min(ly)
+
+		#Transparency function
+			col2rgbA<-function(color,transparency) {
+			  rgb(t(col2rgb(color))/255,alpha=transparency)
+			}
+
+			matplot(x=x,y=cbind(y, ly, uy),type="n", xaxt="n", yaxt="n", 
+				xlab="Year",ylab="",col="black", ylim=c(ymin,ymax))
+			axis(side=1, at=seq(min(x), max(x), by=1))
+			axis(side=2, at=pretty(seq(ymin, ymax, by=(ymax-ymin)/6)), labels=formatC(pretty(seq(ymin, ymax, by=(ymax-ymin)/6)), big.mark=",", format="d"), las=1)
+			mtext("Trips", side=2, line=5, adj=.5, outer=FALSE)
+			polygon(x=c(x,rev(x)),y=c(ly, rev(uy)), col=col2rgbA("lightblue", .5), border = "lightblue")
+			points(x, y, type="l", lwd=2, col="dodgerblue3")
+			legend("topright", legend=c("Annual mean", "95% Conf. int."), col=c("dodgerblue3", col2rgbA("lightblue", .5)), lwd=c(2, 8), lty=c(1,1), bty="n")
+			#text(median(x), 0.97*ymax, paste(cntname, " county", main, sep=""), cex=2) 
+			mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+			mtext(paste(cntname, " County", main, sep=""), side=3, cex=2, line=0, adj=.5, outer=FALSE)
+			}
+
+
+	#3-panel plot of mode or area-specific effort
+					plotfun3_c <- function (results, main){
+					results$lcl <- results$Trips-1.96*results$SE
+			  		results$ucl <- results$Trips+1.96*results$SE
+
+			  			x = results$year
+              x_main = seq(from=min(x), to=max(x), by=1)
+			  			y = results$Trips 
+			  			ly = results$lcl
+			  			uy = results$ucl 
+
+			  			ymax <- 1.25*max(uy)
+						  ymin <- .90*min(ly)
+
+						### Transparency function
+							col2rgbA<-function(color,transparency) {
+							  rgb(t(col2rgb(color))/255,alpha=transparency)
+							}
+
+							matplot(x=x,y=cbind(y, ly, uy),type="n", xaxt="n", yaxt="n", 
+								xlab="Year",ylab="",col="black", ylim=c(ymin,ymax), xlim=c(min(years), max(years)))
+              axis(side=1, at=years)
+							axis(side=2, at=pretty(seq(ymin, ymax, by=(ymax-ymin)/6)), labels=formatC(pretty(seq(ymin, ymax, by=(ymax-ymin)/6)), big.mark=",", format="d"), las=1)
+							mtext("Trips", side=2, line=5, adj=.5, outer=FALSE)
+							polygon(x=c(x,rev(x)),y=c(ly, rev(uy)), col=col2rgbA("lightblue", .5), border = "lightblue")
+							points(x, y, type="l", lwd=2, col="dodgerblue3")
+							legend("topright", legend=c("Annual mean", "95% Conf. int."), col=c("dodgerblue3", col2rgbA("lightblue", .5)), lwd=c(2, 8), lty=c(1,1), bty="n")
+							text(median(x_main), 0.94*ymax, paste(main, sep=""), cex=2) #this works but puts a stupid space in where you don't need it. 
+							#mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+			}
+
+
+
+
+  #Single SEASONAL county plot of all effort (pooled across area and mode)
+    plotfun_c_seas <- function (results, main){
+      results_prop <- (results$Trips/sum(results$Trips))*100
+      bpnames=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+      cols= colorRampPalette(c("dodgerblue", "pink"))(12)       #create a vector of colors equal to the number of bins
+      cols_ordered = cols[rank(results_prop)]  
+
+      barplot(results_prop, names.arg=bpnames, col=cols_ordered, ylim=c(0,1.2*max(results_prop)), ylab="Percent of effort", main="", 
+      cex.lab=1.5, cex.axis=1.25, cex.names=1.5)           
+          mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+          mtext(paste(cntname, " County", main, sep=""), side=3, cex=2, line=0, adj=.5, outer=FALSE)
+      }
+
+    plotfun_c_seas3 <- function (results, main){
+      results_prop <-(results$Trips/sum(results$Trips))*100
+      bpnames=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+      cols= colorRampPalette(c("dodgerblue", "pink"))(12)       #create a vector of colors equal to the number of bins
+      cols_ordered = cols[rank(results_prop)]  
+
+      barplot(results_prop, names.arg=bpnames, col=cols_ordered, ylim=c(0,1.2*max(results_prop)), ylab="Percent of effort", main="", 
+      cex.lab=1.5, cex.axis=1.25, cex.names=1.5)           
+          # mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+          mtext(main, side=3, cex=1.25, line=-1, adj=.5, outer=FALSE)
+      }
+
+          plotfun_c_seas3_nodata <- function (){
+          results_prop <-rep(0,12)
+          bpnames=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+          cols= colorRampPalette(c("dodgerblue", "pink"))(12)       #create a vector of colors equal to the number of bins
+          cols_ordered = cols[rank(results_prop)]  
+
+          barplot(results_prop, names.arg=bpnames, col=cols_ordered, ylim=c(0,1.2), ylab="Percent of effort", main="", 
+          cex.lab=1.5, cex.axis=1.25, cex.names=1.5)           
+              # mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+              mtext("No Data Available", side=3, cex=1.25, line=-5, adj=.5, outer=FALSE)
+      }
+    
+```
+
+```{r fig1cap_define, echo=FALSE, message=FALSE, warning = FALSE}
+library(knitr)
+opts_knit$set(eval.after = "fig.cap")
+fig1cap=paste0("**Figure 1.  **", tmplist$county, " County overall fishing effort from ", tmplist$mrip_years, " all modes, areas, and seasons. The dark blue line is the most likely number of trips and the light blue area shows the uncertainty. Absence of uncertainty can indicate sparse data.")
+```
+  
+```{r fig1, fig.width=9, fig.height=6, fig.cap=fig1cap, echo=FALSE, message=FALSE, warning = FALSE}
+	options(scipen=999)
+	par(mfrow=c(1,1), mgp = c(2.5, .5, 0), mar=c(5,5,2,2), oma=c(1,2,1,1))
+	plotfun_c(results=results_all_cnt, main=", all modes and areas")
+```
+
+<!--**Figure 1. `r tmplist$county` County overall fishing effort from `r tmplist$mrip_years`, all modes, areas, and seasons.** The dark blue line is the most likely number of trips and the light blue area shows the uncertainty. Absence of uncertainty can indicate sparse data.-->
+
+\newpage
+
+### Seasonal Patterns in overall fishing effort  
+For almost all counties, fishing effort follows seasonal patterns with more effort in some months than others. These patterns can be shown by looking at the percent of effort that occurs in each month (**Figure 2**). These data are shown without error estimates for simplicity, but the data shown are for years `r tmplist$mrip_seas_years` combined. Combining multiple years helps to smooth out strange patterns from random sampling and anomalous events that might occur in a single year. 
+
+```{r fig2cap_define, echo=FALSE, message=FALSE, warning = FALSE}
+library(knitr)
+opts_knit$set(eval.after = "fig.cap")
+fig2cap=paste0("**Figure 2.  **", tmplist$county, " County seasonal patterns of fishing effort, all modes, and areas.** The percent of total effort from years ", tmplist$mrip_seas_years, " occurring in each month is shown. The colors help to identify months with greater or lesser percent of effort. Greater percent of effort are warmer, more pink colors, and lesser are cooler, more blue colors.")
+```
+
+```{r fig2, fig.width=11, fig.height=6, fig.cap=fig2cap, echo=FALSE, message=FALSE, warning = FALSE}
+    options(scipen=999)
+    par(mfrow=c(1,1), mgp = c(2.5, .5, 0), mar=c(5,4,2,2), oma=c(1,2,1,1))  
+    plotfun_c_seas(results=results_cnt_seas_all, main=paste(", all modes and areas, ", yrstrt_seas, "-", yrend_seas, sep=""))
+```
+
+<!--**Figure 2. `r tmplist$county` County seasonal patterns of fishing effort, all modes, and areas.** The percent of total effort from years `r tmplist$mrip_seas_years` occurring in each month is shown. The colors help to identify months with greater or lesser percent of effort. Greater percent of effort are warmer, more pink colors, and lesser are cooler, more blue colors.-->   
+
+\newpage
+
+## Fishing Effort by Mode
+The **mode** describes the type of fishing trip-- shore-based, for-hire, or private/rental vessel. Note, the for-hire effort shown here does not include headboat and partyboat effort, but instead is charter and guided fishing effort. We first show the time series of fishing trips by mode from `r tmplist$yrstrt` to `r tmplist$yrend` to describe trends over time (**Figure 3**). Then we show seasonal patterns as the percent of all trips from `r tmplist$yrstrt_seas` to `r tmplist$yrend_seas` occurring in each month (**Figure 4**).
+
+### Effort time series by mode 
+This information shows the estimated number of fishing trips over time, by fishing mode. It may help inform decisions about advertising, facilities, or access. These trends show effort pooled across all areas and seasons. The dark blue line is the most likely estimate and the light blue area represents the uncertainty.
+
+```{r fig3cap_define, echo=FALSE, message=FALSE, warning = FALSE}
+library(knitr)
+opts_knit$set(eval.after = "fig.cap")
+fig3cap=paste0("**Figure 3.**  Trends in ", tmplist$county, " County fishing effort by mode, for all areas and seasons. The dark blue line is the most likely number of trips and the light blue area shows the uncertainty. Absence of light blue uncertainty bands can indicate sparse data.")
+```
+
+```{r fig3, fig.width=9, fig.height=8, fig.cap=fig3cap, echo=FALSE, message=FALSE, warning = FALSE}
+		par(mfrow=c(3,1), mgp = c(2.5, .5, 0), mar=c(4,4,2,2), oma=c(.5,3,.5,1))  
+		options(scipen=999)
+		plotfun3_c(results=results_Mshore_cnt, main="Shore-based, all areas")
+			mtext(bquote(italic(.(cntname)~"County")), side=3, line=0, adj=0, cex=1.5, outer=FALSE)
+		plotfun3_c(results=results_Mhire_cnt, main="For-hire, all areas")
+		plotfun3_c(results=results_Mpriv_cnt, main="Private/rental, all areas")
+			mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+```
+
+<!--**Figure 3. Trends in `r tmplist$county` County fishing effort by mode, for all areas and seasons.** The dark blue line is the most likely number of trips and the light blue area shows the uncertainty. Absence of uncertainty can indicate sparse data.--> 
+
+\newpage
+
+### Seasonal patterns in fishing effort by mode  
+In many `r tmplist$state` counties, different fishing modes have different seasonal effort patterns. These patterns may help fine-tune decisions about advertising or access, as well as provide some insight into how state or regional regulations could affect local fisheries. These patterns are shown in terms of the percent of trips from years `r tmplist$mrip_seas_years` that occurred in each month (**Figure 4**).
+
+```{r fig4cap_define, echo=FALSE, message=FALSE, warning = FALSE}
+library(knitr)
+opts_knit$set(eval.after = "fig.cap")
+fig4cap=paste0("**Figure 4.**  Percent of ", tmplist$county, " County effort from years `r tmplist$mrip_seas_years` by month for each mode, pooled across areas. The colors help to identify months with greater or lesser percent of effort. Greater percent of effort are warmer, pinker colors, and lesser are cooler, more blue colors.")
+```
+
+```{r fig4, fig.width=8, fig.height=6, fig.cap=fig4cap, echo=FALSE, message=FALSE, warning = FALSE}
+      par(mfrow=c(3,1), mgp = c(2.5, .5, 0), mar=c(4,4,2,2), oma=c(.5,3,.5,1))  
+      tryCatch({plotfun_c_seas3(results=results_Mshore_cnt_seas, main="Shore-based all areas")}, warning=function(e){plotfun_c_seas3_nodata()},
+       error=function(e){plotfun_c_seas3_nodata()})
+        mtext(bquote(italic(.(cntname)~"County"~.(yrstrt_seas)~"-"~.(yrend_seas))), side=3, line=0, adj=0, cex=1.00, outer=FALSE)
+      tryCatch({plotfun_c_seas3(results=results_Mhire_cnt_seas, main="For-hire all areas")}, warning=function(e){plotfun_c_seas3_nodata()},
+       error=function(e){plotfun_c_seas3_nodata()})
+      tryCatch({plotfun_c_seas3(results=results_Mpriv_cnt_seas, main="Private/Rental all areas")}, warning=function(e){plotfun_c_seas3_nodata()},
+       error=function(e){plotfun_c_seas3_nodata()})
+        mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+```
+
+<!--**Figure 4. Percent of `r tmplist$county` County effort from years `r tmplist$mrip_seas_years` by month for each mode, pooled across areas.** The colors help to identify months with greater or lesser percent of effort. Greater percent of effort are warmer, pinker colors, and lesser are cooler, more blue colors.-->
+
+\newpage
+
+## Fishing Effort by Area
+The **area** describes the place where the fishing trips occurred, in terms of the general distance from shore. The three areas are nearshore, offshore, and inland. Here we show the effort time series by area (**Figure 5**) and the seasonal patterns by month (**Figure 6**)
+
+### Effort time series by area  
+The trends in fishing effort may be different for different areas of fishing. This information shows demand for different areas of fishing and how it has changed over time. This information is useful for making advertising decisions, for informing the fishing industry, and for understanding how state fisheries management changes may have relatively greater or lesser local effects. Note that these trends show effort by area but pooled across all modes and seasons. As with other figures, the dark blue line is the most likely estimate and the light blue area represents the uncertainty.
+
+```{r fig5cap_define, echo=FALSE, message=FALSE, warning = FALSE}
+library(knitr)
+opts_knit$set(eval.after = "fig.cap")
+fig5cap=paste0("**Figure 5.**  Trends in ", tmplist$county, " County fishing effort by area, for all modes and seasons. The dark blue line is the most likely number of trips, and the light blue area shows the uncertainty. Absence of uncertainty can indicate sparse data.")
+```
+
+```{r fig5, fig.width=8, fig.height=6, fig.cap=fig5cap, echo=FALSE, message=FALSE, warning = FALSE}
+		par(mfrow=c(3,1), mgp = c(2.5, .5, 0), mar=c(4,4,2,2), oma=c(.5,3,.5,1))  
+		options(scipen=999)
+		plotfun3_c(results=results_AnearO_cnt, main="Ocean <10mi, all modes")
+			mtext(bquote(italic(.(cntname)~"County")), side=3, line=0, adj=0, cex=1.5, outer=FALSE)
+		plotfun3_c(results=results_AfarO_cnt, main="Ocean >10mi, all modes")
+		plotfun3_c(results=results_Ains_cnt, main="Inland areas, all modes")
+			mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+```
+
+<!--**Figure 5. Trends in `r tmplist$county` County fishing effort by area, for all modes and seasons.** The dark blue line is the most likely number of trips, and the light blue area shows the uncertainty. Absence of uncertainty can indicate sparse data.-->
+
+\newpage
+
+### Seasonal Patterns in fishing effort by area  
+In many `r tmplist$state` counties, fishing in different areas has seasonal patterns, which may be due to weather, tourism, fish biology, fisheries management, or some combinations of these. Looking at these seasonal trends can help fine-tune decisions about advertising or access, as well as providing some insight into how state or regional regulations may affect local fisheries. These patterns are shown in terms of the percent of trips for years (`r tmplist$mrip_seas_years`) that occurred in each month (**Figure 6**).
+
+```{r fig6cap_define, echo=FALSE, message=FALSE, warning = FALSE}
+library(knitr)
+opts_knit$set(eval.after = "fig.cap")
+fig6cap=paste0("**Figure 6.**  Percent of ", tmplist$county, " County effort from years ", tmplist$mrip_seas_years, " by area for each area, pooled across modes. The colors simply help to identify months with greater or lesser percent of effort. Greater percent of effort are warmer, pinker colors, and lesser are cooler, more blue colors.")
+```
+
+```{r fig6, fig.width=9, fig.height=7, fig.cap=fig6cap, echo=FALSE, message=FALSE, warning = FALSE}
+      par(mfrow=c(3,1), mgp = c(2.5, .5, 0), mar=c(4,4,2,2), oma=c(.5,3,.5,1))  
+      tryCatch({plotfun_c_seas3(results=results_AnearO_cnt_seas, main=paste0("Near ocean all modes, ", yrstrt_seas, "-", yrend_seas))}, warning=function(e){plotfun_c_seas3_nodata()},
+       error=function(e){plotfun_c_seas3_nodata()})
+        mtext(bquote(italic(.(cntname)~"County"~.(yrstrt_seas)~"-"~.(yrend_seas))), side=3, line=0, adj=0, cex=1.00, outer=FALSE)
+      tryCatch({plotfun_c_seas3(results=results_AfarO_cnt_seas, main=paste0("Far ocean all modes, ", yrstrt_seas, "-", yrend_seas))}, warning=function(e){plotfun_c_seas3_nodata()},
+       error=function(e){plotfun_c_seas3_nodata()})
+      tryCatch({plotfun_c_seas3(results=results_Ains_cnt_seas, main=paste0("Shore-based all areas, ", yrstrt_seas, "-", yrend_seas))}, warning=function(e){plotfun_c_seas3_nodata()},
+       error=function(e){plotfun_c_seas3_nodata()})
+        mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+```
+
+<!--**Figure 6. Percent of `r tmplist$county` County effort from years `r tmplist$mrip_seas_years` by area for each area, pooled across modes.** The colors simply help to identify months with greater or lesser percent of effort. Greater percent of effort are warmer, pinker colors, and lesser are cooler, more blue colors.-->
+
+
+\newpage
+## Summary
+This document describes the estimated marine recreational fishing effort in `r tmplist$county` County over the past 20+ years. We first describe the overall fishing effort--the number of trips pooled across fishing trip mode and area fished, and we describe this in terms of annual trend and the seasonal patterns. We then provide detail about how both these annual trends and seasonal patterns by specific fishing mode and area fished. The main findings specific to `r tmplist$county` County are:
+
+* `r tmplist$summary_overall`
+* `r tmplist$summary_mode`
+*	`r tmplist$summary_season`.
+
+These summary findings represent the authors best assessment of recent trends based on the data available and methods used, as described within the report. However, the summary findings have not been thoroughly peer-reviewed, as a scientific paper would be, and they are intended as general guidance rather than absolute statements. For additional information, please contact the authors.
+
+\newpage
+## References
+

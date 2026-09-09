@@ -1,0 +1,465 @@
+---
+title: "Marine Recreational Fishing Effort Summary 2025: `r tmplist$county` County"
+author:  
+- "Prepared for `r tmplist$county` County by Edward Camp (edvcamp@ufl.edu) and Anna Brasawell (a.braswell@ufl.edu), Assistant Professors at the University of Florida`r tmplist$author_sep` `r tmplist$agent``r tmplist$separator` `r tmplist$agent_title` `r tmplist$agent_email`"  
+output:
+  word_document:
+    toc: false  
+    pandoc_args:
+     '--lua-filter=page-break1.lua'
+
+---
+
+```{r global_controls, echo=FALSE, message=FALSE, warning = FALSE}
+##############################################################################
+### CONTROL PANEL ###
+##############################################################################
+  #Spatial 
+    #To be Changed
+      cntname <- tmplist$county_R_name      
+      stname <- tmplist$state
+      stname_abrv <- "FL"
+      # coastname <- "Atlantic"  #Not applicable for any states other than Florida
+      # regname <- "East Central FL"
+      # cntregc <- c("Volusia", "`r tmplist$county`")
+      coast <-tmplist$coast   #this corresponds to "sub_reg" in the data file, 7= gulf, 6= atl
+      
+      yrstrt <- tmplist$yrstrt   #1995
+ 	    yrend <- tmplist$yrend     #2019
+ 	    years <- seq(yrstrt,yrend,1)
+ 	    
+ 	    yrstrt_seas <- tmplist$yrstrt_seas
+      yrend_seas <- tmplist$yrend_seas
+      years_seas <- seq(yrstrt_seas,yrend_seas,1)
+
+```
+
+### How to use this summary
+This documents summarizes a full report on the estimated marine recreational fishing effort (number of fishing trips) in `r tmplist$county` County. This information shows the importance of fishing to `r tmplist$county` County economies, stakeholders, and ecosystems, and can inform advertising for fishing-based tourism and local planning in `r tmplist$county` County. The summary augments the full report, which is available from the authors if you do not yet have it. 
+
+### What information is included and how was it generated
+All of the information here comes from the National Marine Fisheries Service (NMFS) Marine Recreational Information Program (MRIP). This summary describes fishing effort annually (trends over time, `r tmplist$yrstrt`-`r tmplist$yrend`) and seasonally (average trips per month from `r tmplist$yrstrt_seas`-`r tmplist$yrend_seas`). For annual trends, the information is described by fishing **mode**--the type of fishing trip. There are three modes provided in MRIP: shore-based, for-hire (guided trips, charters, party boats, etc.), and private or rental vessel. The seasonal trends are shown for all modes combined, but greater detail is available in the full report. Data are shown through `r tmplist$yrend`. 
+
+### Seasonal pattens in fishing effort
+The seasonal patterns of all trips (regardless of mode) is shown in Figure 1. These proportions are the average of the years `r tmplist$yrstrt_seas`-`r tmplist$yrend_seas`. 
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning = FALSE)
+```
+
+
+```{r data, echo=FALSE, message=FALSE, warning = FALSE}
+library(data.table)
+library(Hmisc)
+library(dplyr)
+library(survey) 
+
+##############################################################################
+### DATA ###
+##############################################################################
+	### Read in saved data
+		#MRIP
+			setwd("U:/UF/Extension specific/CFEE/Effort trends/code/Markdown/2025")
+	  	load("fl_2000_2024.RData")
+	  	dat_a <- fl_2000_2024
+
+			load("FL_1995_1999.RData")
+			dat_b <- dt_fl
+
+			dat <- rbind(dat_a, dat_b)
+
+
+		#US info
+		#	setwd("U:/UF/Extension specific/CFEE/Effort trends/code/Markdown/2025") 
+  		fips <- read.csv("US_FIPS_Codes.csv", header=T)
+  		states <- unique(fips[,c("state", "state_code")])
+
+
+```
+
+
+```{r derived_controls, echo=FALSE, message=FALSE, warning = FALSE}
+##############################################################################
+### DERIVED CONTROL PANEL ###
+##############################################################################
+    #Derived
+      area_near_ocean <- ifelse(coast==7, 3, 1)   #So, FL gulf near ocean is "3", and FL Atl near ocean is "1"
+      area_far_ocean <- ifelse(coast==7, 4, 2)    #Also FL gulf far ocean is "4", and FL Atl far ocean is "2"
+      counties <- unique(fips[which(fips$state==stname),c("county", "county_code")])
+      stcode <- fips[which(fips$state==stname), c("state_code")] [1]
+      cntcode <- fips[which(fips$state==stname & fips$county==cntname), c("county_code")] 
+      #cntregcode <- as.character(c(fips[which(fips$state==stname & fips$county %in% cntregc), c("county_code")]))
+      stcntycode <- paste(stcode, "_", cntcode, sep="")
+      ocndistplot <- ifelse(coast=="6", "3mi", "10mi")
+
+```
+
+
+```{r data_operations, echo=FALSE, message=FALSE, warning = FALSE}
+##############################################################################
+### DATA OPERATIONS / MANIPULATIONS ###
+##############################################################################
+	#Filtering
+		daty <- dat[year %in% years,]  #Can eventually add other filters in here, like could filter the data by mode, county, etc. 
+
+	#Converting back to data.frame
+		dat1 <- as.data.frame(daty)  #Data tables are great, but will take time to learn how to integrate with code, so turning back to data.frame
+
+		#additional data manipulation aspects
+      dat1$monthc <- as.character(dat1$month)
+      dat1$month_f <- as.factor(ifelse(nchar(dat1$monthc)>1,  dat1$monthc, paste("0", dat1$monthc, sep="")))
+      dat1$cntyf1 <- as.factor(ifelse(nchar(dat1$cnty)==1, paste("00", dat1$cnty, sep=""),
+      					ifelse(nchar(dat1$cnty)==2, paste("0", dat1$cnty, sep=""), dat1$cnty)))
+      dat1$cntyf1[which(is.na(dat1$cntyf1))] <- "099"
+
+  		dat1$mode_f <- as.factor(as.character(dat1$mode_f))
+  		dat1$mode_fx <- as.factor(as.character(dat1$mode_fx))
+  		dat1$area_x <- as.factor(as.character(dat1$area_x))
+  		dat1$cntyf <- as.factor(as.character(dat1$cnty)) 
+  		dat1$st_cnty <- as.factor(as.character(paste(dat1$st, dat1$cntyf, sep="_")))
+  		dat1$st_cnty_res <- as.factor(as.character(paste(dat1$st_res, dat1$cnty_res, sep="_")))
+  		dat1$prim1_common <- capitalize(tolower(dat1$prim1_common))
+  			levels(dat1$prim1_common) <- c(levels(dat1$prim1_common), "No Target")
+  			dat1$prim1_common[which(dat1$prim1_common =="")] <- "No Target"
+  		dat1$prim2_common <- capitalize(tolower(dat1$prim2_common))
+  			levels(dat1$prim2_common) <- c(levels(dat1$prim2_common), "No Target")
+  			dat1$prim2_common[which(dat1$prim2_common =="")] <- "No Target"
+```
+
+
+```{r functions, echo=FALSE, message=FALSE, warning = FALSE}
+##############################################################################
+### DATA ANALYSES AND MODELS ###
+##############################################################################
+
+#main workhorse function, generally used for county by year
+	estfun <- function(df)  
+		{
+
+			#creating dom_id for the different groups you want estimates for
+			df$dom_id <-c(paste(df$year, df$st, df$sub_reg, sep=""))  #here is the domain id only down to year, but subset for the county of concern
+				#if you wanted to go to say, wave, you'd need to add dat1$wave in there too. Example from MRIP code below
+					#dataset$dom_id<-c(paste(dataset$year,dataset$wave,dataset$st,dataset$sub_reg, dataset$mode_fx,dataset$area_x,sep=""))
+			df$dtrip <- 1 		#Ok, I don' tknow what this is, need to sort that out 
+
+			#survey design function, from MRIP
+  			dfpc<-svydesign(ids=~psu_id,strata=~strat_id, weights=~wp_int,nest=TRUE,data=df)  #So...assuming this is the survey design info?
+   				options(survey.lonely.psu = "certainty")
+
+   			#survey estimates function, from MRIP
+ 	 		results<-svyby(~dtrip, ~dom_id, dfpc, svytotal, vartype=c("se","cv"), keep.names=FALSE) #and this shoudl be the engine for estimation?
+  				names(results)<-c("Domain","Trips","SE","PSE")
+
+  			#Creating additional variables
+  			results$year <- as.numeric(substr(results$Domain,1,4))
+  			results$state <- substr(results$Domain,5,6)
+  			#results$mode_fx <- substr(results$Domain,8,8)
+  			results$county_code <- df$cnty[1]  #returns county
+  			results$sub_reg <- df$sub_reg[1]  #returns county
+  		results
+  		}
+
+
+#SEASONAL estimating the effort at each month NOT YEAR. Designed for county
+    estfun_month <- function(df)
+    {
+
+      #creating dom_id for the different groups you want estimates for
+      #df$dom_id <-c(paste(df$year, df$st, df$mode_fx, df$month_f, sep=""))  #here is the domain id only down to year, but subset for the county of concern
+      df$dom_id <-c(paste(df$cntyf1, df$month_f, sep="")) 
+        #if you wanted to go to say, wave, you'd need to add dat1$wave in there too. Example from MRIP code below
+          #dataset$dom_id<-c(paste(dataset$year,dataset$wave,dataset$st,dataset$sub_reg, dataset$mode_fx,dataset$area_x,sep=""))
+      df$dtrip <- 1     #Ok, I don' tknow what this is, need to sort that out 
+
+      #survey design function, from MRIP
+        dfpc<-svydesign(ids=~psu_id,strata=~strat_id, weights=~wp_int,nest=TRUE,data=df)  #So...assuming this is the survey design info?
+          options(survey.lonely.psu = "certainty")
+
+        #survey estimates function, from MRIP
+      results<-svyby(~dtrip, ~dom_id, dfpc, svytotal, vartype=c("se","cv"), keep.names=FALSE) #and this shoudl be the engine for estimation?
+          names(results)<-c("Domain","Trips","SE","PSE")
+
+        #Creating additional variables
+        nchars = nchar(results$Domain)
+        results$county_code <- as.numeric(substr(results$Domain,1,3))
+        #results$year <- as.numeric(substr(results$Domain,1,4))
+        #results$state <- substr(results$Domain,5,6)
+        #results$mode_fx <- substr(results$Domain,4,4)
+        results$month_f <- substr(results$Domain,4,5)
+        
+        # results$sub_reg <- df$sub_reg[1]  #returns county
+      #results
+      #patch to deal with some months not being sampled
+month <- as.factor(c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")) 
+monthdf <- data.frame(month)
+test <- merge(x=results, y=monthdf, by.x="month_f", by.y="month", all.x=TRUE, all.y=TRUE)    #merge them based on year-month
+test[,c('Trips', 'SE', 'PSE')] [is.na(test[,c('Trips', 'SE', 'PSE')])] <- 0 #just change the NA's to zeros, which is correct
+      results <- test
+      results
+      }
+
+
+#SEASONAL estimating the effort at each month NOT YEAR. Designed for county
+  	estfun_mode_month <- function(df)
+		{
+
+			#creating dom_id for the different groups you want estimates for
+			#df$dom_id <-c(paste(df$year, df$st, df$mode_fx, df$month_f, sep=""))  #here is the domain id only down to year, but subset for the county of concern
+			df$dom_id <-c(paste(df$cntyf1, df$mode_fx, df$month_f, sep="")) 
+				#if you wanted to go to say, wave, you'd need to add dat1$wave in there too. Example from MRIP code below
+					#dataset$dom_id<-c(paste(dataset$year,dataset$wave,dataset$st,dataset$sub_reg, dataset$mode_fx,dataset$area_x,sep=""))
+			df$dtrip <- 1 		#Ok, I don' tknow what this is, need to sort that out 
+
+			#survey design function, from MRIP
+  			dfpc<-svydesign(ids=~psu_id,strata=~strat_id, weights=~wp_int,nest=TRUE,data=df)  #So...assuming this is the survey design info?
+   				options(survey.lonely.psu = "certainty")
+
+   			#survey estimates function, from MRIP
+ 	 		results<-svyby(~dtrip, ~dom_id, dfpc, svytotal, vartype=c("se","cv"), keep.names=FALSE) #and this shoudl be the engine for estimation?
+  				names(results)<-c("Domain","Trips","SE","PSE")
+
+  			#Creating additional variables
+  			nchars = nchar(results$Domain)
+  			results$county_code <- as.numeric(substr(results$Domain,1,3))
+  			#results$year <- as.numeric(substr(results$Domain,1,4))
+  			#results$state <- substr(results$Domain,5,6)
+  			results$mode_fx <- substr(results$Domain,4,4)
+  			results$month_f <- substr(results$Domain,5,6)
+  			
+  			# results$sub_reg <- df$sub_reg[1]  #returns county
+  		      #results
+        #patch for counties where a mode or area isn't sampled in a given month in the data set
+        month <- as.factor(c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")) 
+        monthdf <- data.frame(month)
+        test <- merge(x=results, y=monthdf, by.x="month_f", by.y="month", all.x=TRUE, all.y=TRUE)    #merge them based on year-month
+        test[,c('Trips', 'SE', 'PSE')] [is.na(test[,c('Trips', 'SE', 'PSE')])] <- 0 #just change the NA's to zeros, which is correct
+      results <- test
+      results
+  		}
+
+
+#SEASONAL estimating the effort at each month NOT YEAR. Designed for county
+    estfun_area_month <- function(df)
+    {
+
+      #creating dom_id for the different groups you want estimates for
+      #df$dom_id <-c(paste(df$year, df$st, df$mode_fx, df$month_f, sep=""))  #here is the domain id only down to year, but subset for the county of concern
+      df$dom_id <-c(paste(df$cntyf1, df$area_x, df$month_f, sep="")) 
+        #if you wanted to go to say, wave, you'd need to add dat1$wave in there too. Example from MRIP code below
+          #dataset$dom_id<-c(paste(dataset$year,dataset$wave,dataset$st,dataset$sub_reg, dataset$mode_fx,dataset$area_x,sep=""))
+      df$dtrip <- 1     #Ok, I don' tknow what this is, need to sort that out 
+
+      #survey design function, from MRIP
+        dfpc<-svydesign(ids=~psu_id,strata=~strat_id, weights=~wp_int,nest=TRUE,data=df)  #So...assuming this is the survey design info?
+          options(survey.lonely.psu = "certainty")
+
+        #survey estimates function, from MRIP
+      results<-svyby(~dtrip, ~dom_id, dfpc, svytotal, vartype=c("se","cv"), keep.names=FALSE) #and this shoudl be the engine for estimation?
+          names(results)<-c("Domain","Trips","SE","PSE")
+
+        #Creating additional variables
+        nchars = nchar(results$Domain)
+        results$county_code <- as.numeric(substr(results$Domain,1,3))
+        #results$year <- as.numeric(substr(results$Domain,1,4))
+        #results$state <- substr(results$Domain,5,6)
+        results$area_x <- substr(results$Domain,4,4)
+        results$month_f <- substr(results$Domain,5,6)
+        
+        # results$sub_reg <- df$sub_reg[1]  #returns county
+  		      #results
+        #patch for counties where a mode or area isn't sampled in a given month in the data set
+        month <- as.factor(c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")) 
+        monthdf <- data.frame(month)
+        test <- merge(x=results, y=monthdf, by.x="month_f", by.y="month", all.x=TRUE, all.y=TRUE)    #merge them based on year-month
+        test[,c('Trips', 'SE', 'PSE')] [is.na(test[,c('Trips', 'SE', 'PSE')])] <- 0 #just change the NA's to zeros, which is correct
+      results <- test
+      results
+    }
+```    
+
+
+```{r output, echo=FALSE, message=FALSE, warning = FALSE}    
+######################################################
+#### OUTPUT
+######################################################
+
+	### Filters analyses 
+		#County by YEAR
+			df_filt_cnt_all <- filter(dat1, dat1$cntyf %in% c(cntcode))  #Filtering for the county in the control panel
+			df_filt_cnt_Mshore <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$mode_fx==3)  #Filtering for the county in the control panel
+			df_filt_cnt_Mhire <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$mode_fx==5)  #Filtering for the county in the control panel
+			df_filt_cnt_Mpriv <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$mode_fx==7)  #Filtering for the county in the control panel
+
+			df_filt_cnt_AnearO <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$area_x==area_near_ocean)  #Filtering for the county in the control panel
+			df_filt_cnt_AfarO <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$area_x==area_far_ocean)  #Filtering for the county in the control panel
+			df_filt_cnt_Ains <- filter(dat1, dat1$cntyf %in% c(cntcode), dat1$area_x==5)  #Filtering for the county in the control panel
+
+      #County by MONTH
+      df_filt_cnt_all_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode))  #Filtering for the county in the control panel
+      df_filt_cnt_Mshore_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$mode_fx==3)  
+      df_filt_cnt_Mhire_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$mode_fx==5)  
+      df_filt_cnt_Mpriv_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$mode_fx==7)  
+
+      df_filt_cnt_AnearO_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$area_x==area_near_ocean)  
+      df_filt_cnt_AfarO_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$area_x==area_far_ocean)  
+      df_filt_cnt_Ains_seas <- filter(dat1, dat1$year %in% c(years_seas), dat1$cntyf %in% c(cntcode), dat1$area_x==5)  
+	
+
+	### COUNTY specific results
+		### By YEAR getting results of all, specific modes and areas
+			results_all_cnt <- estfun(df_filt_cnt_all)
+			results_Mshore_cnt <- estfun(df_filt_cnt_Mshore)
+			results_Mhire_cnt <- estfun(df_filt_cnt_Mhire)
+			results_Mpriv_cnt <- estfun(df_filt_cnt_Mpriv)
+			results_AnearO_cnt <- estfun(df_filt_cnt_AnearO)
+			results_AfarO_cnt <- estfun(df_filt_cnt_AfarO)
+			results_Ains_cnt <- estfun(df_filt_cnt_Ains)
+
+    ### by MONTH
+      results_cnt_seas_all <- estfun_month(df_filt_cnt_all_seas)
+
+      results_Mshore_cnt_seas <- tryCatch({estfun_mode_month(df_filt_cnt_Mshore_seas)}, error=function(e){})
+      results_Mhire_cnt_seas <- tryCatch({estfun_mode_month(df_filt_cnt_Mhire_seas)}, error=function(e){})
+      results_Mpriv_cnt_seas <- tryCatch({estfun_mode_month(df_filt_cnt_Mpriv_seas)}, error=function(e){})
+      results_AnearO_cnt_seas <- tryCatch({estfun_area_month(df_filt_cnt_AnearO_seas)}, error=function(e){})
+      results_AfarO_cnt_seas <- tryCatch({estfun_area_month(df_filt_cnt_AfarO_seas)}, error=function(e){})
+      results_Ains_cnt_seas <- tryCatch({estfun_area_month(df_filt_cnt_Ains_seas)}, error=function(e){})
+
+      
+### Plotting functions
+  #Single county plot of all effort (pooled across area and mode)
+		plotfun_c <- function (results, main){
+			results$lcl <- results$Trips-1.96*results$SE
+	  	results$ucl <- results$Trips+1.96*results$SE
+
+			x = results$year
+			y = results$Trips 
+			ly = results$lcl
+			uy = results$ucl 
+
+			ymax <- 1.25*max(uy)
+		  ymin <- .90*min(ly)
+
+		#Transparency function
+			col2rgbA<-function(color,transparency) {
+			  rgb(t(col2rgb(color))/255,alpha=transparency)
+			}
+
+			matplot(x=x,y=cbind(y, ly, uy),type="n", xaxt="n", yaxt="n", 
+				xlab="Year",ylab="",col="black", ylim=c(ymin,ymax))
+			axis(side=1, at=seq(min(x), max(x), by=1))
+			axis(side=2, at=pretty(seq(ymin, ymax, by=(ymax-ymin)/6)), labels=formatC(pretty(seq(ymin, ymax, by=(ymax-ymin)/6)), big.mark=",", format="d"), las=1)
+			mtext("Trips", side=2, line=5, adj=.5, outer=FALSE)
+			polygon(x=c(x,rev(x)),y=c(ly, rev(uy)), col=col2rgbA("lightblue", .5), border = "lightblue")
+			points(x, y, type="l", lwd=2, col="dodgerblue3")
+			legend("topright", legend=c("Annual mean", "95% Conf. int."), col=c("dodgerblue3", col2rgbA("lightblue", .5)), lwd=c(2, 8), lty=c(1,1), bty="n")
+			#text(median(x), 0.97*ymax, paste(cntname, " county", main, sep=""), cex=2) 
+			mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+			mtext(paste(cntname, " County", main, sep=""), side=3, cex=2, line=0, adj=.5, outer=FALSE)
+			}
+
+
+	#3-panel plot of mode or area-specific effort
+					plotfun3_c <- function (results, main){
+					results$lcl <- results$Trips-1.96*results$SE
+			  		results$ucl <- results$Trips+1.96*results$SE
+
+			  			x = results$year
+              x_main = seq(from=min(x), to=max(x), by=1)
+			  			y = results$Trips 
+			  			ly = results$lcl
+			  			uy = results$ucl 
+
+			  			ymax <- 1.25*max(uy)
+						  ymin <- .90*min(ly)
+
+						### Transparency function
+							col2rgbA<-function(color,transparency) {
+							  rgb(t(col2rgb(color))/255,alpha=transparency)
+							}
+
+							matplot(x=x,y=cbind(y, ly, uy),type="n", xaxt="n", yaxt="n", 
+								xlab="Year",ylab="",col="black", ylim=c(ymin,ymax), xlim=c(min(years), max(years)))
+              axis(side=1, at=years)
+							axis(side=2, at=pretty(seq(ymin, ymax, by=(ymax-ymin)/6)), labels=formatC(pretty(seq(ymin, ymax, by=(ymax-ymin)/6)), big.mark=",", format="d"), las=1)
+							mtext("Trips", side=2, line=5, adj=.5, outer=FALSE)
+							polygon(x=c(x,rev(x)),y=c(ly, rev(uy)), col=col2rgbA("lightblue", .5), border = "lightblue")
+							points(x, y, type="l", lwd=2, col="dodgerblue3")
+							legend("topright", legend=c("Annual mean", "95% Conf. int."), col=c("dodgerblue3", col2rgbA("lightblue", .5)), lwd=c(2, 8), lty=c(1,1), bty="n")
+							text(median(x_main), 0.94*ymax, paste(main, sep=""), cex=2) #this works but puts a stupid space in where you don't need it. 
+							#mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+			}
+
+
+
+
+  #Single SEASONAL county plot of all effort (pooled across area and mode)
+    plotfun_c_seas <- function (results, main){
+      results_prop <-results$Trips/sum(results$Trips)
+      bpnames=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+      cols= colorRampPalette(c("dodgerblue", "pink"))(12)       #create a vector of colors equal to the number of bins
+      cols_ordered = cols[rank(results_prop)]
+      color="dodgerblue"
+
+      barplot(results_prop, names.arg=bpnames, col=color, ylim=c(0,1.2*max(results_prop)), ylab="Percent of effort", main="", 
+      cex.lab=0.7, cex.axis=0.7, cex.names=0.7)           
+          mtext(expression(italic("Source: NMFS MRIP Database")), side=1, cex=0.6, line=2, adj=1, outer=FALSE)
+          mtext(paste(cntname, " County", main, sep=""), side=3, cex=0.75, line=0, adj=.5, outer=FALSE)
+      }
+
+    plotfun_c_seas3 <- function (results, main){
+      results_prop <-results$Trips/sum(results$Trips)
+      bpnames=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+      cols= colorRampPalette(c("dodgerblue", "pink"))(12)       #create a vector of colors equal to the number of bins
+      cols_ordered = cols[rank(results_prop)]
+      color="dodgerblue"
+
+      barplot(results_prop, names.arg=bpnames, col=color, ylim=c(0,1.2*max(results_prop)), ylab="Percent of effort", main="", 
+      cex.lab=1.5, cex.axis=1.25, cex.names=1.5)           
+          # mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+          mtext(main, side=3, cex=1.25, line=-1, adj=.5, outer=FALSE)
+      }
+
+          plotfun_c_seas3_nodata <- function (){
+          results_prop <-rep(0,12)
+          bpnames=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+          cols= colorRampPalette(c("dodgerblue", "pink"))(12)       #create a vector of colors equal to the number of bins
+          cols_ordered = cols[rank(results_prop)] 
+          color="dodgerblue"
+
+          barplot(results_prop, names.arg=bpnames, col=color, ylim=c(0,1.2), ylab="Percent of effort", main="", 
+          cex.lab=1.5, cex.axis=1.25, cex.names=1.5)           
+              # mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+              mtext("No Data Available", side=3, cex=1.25, line=-5, adj=.5, outer=FALSE)
+      }
+    
+```
+
+  
+```{r fig1, fig.width=6, fig.height=2, echo=FALSE, message=FALSE, warning = FALSE}
+    options(scipen=999)
+    par(mfrow=c(1,1), mgp = c(1.5, .25, 0), mar=c(3,4,1,2), oma=c(0,2,0,1))  
+    plotfun_c_seas(results=results_cnt_seas_all, main=paste(", all modes and areas, ", yrstrt_seas, "-", yrend_seas, sep=""))
+```
+
+**Figure 1. `r tmplist$county` County seasonal patterns of fishing effort, all modes.** The percent of total effort from years `r tmplist$yrstrt_seas`-`r tmplist$yrend_seas` occurring in each month.  
+
+### Annual effort trends by mode
+Effort by mode may be important for deciding about things like advertising or allocating funds for shore-based fishing improvement or boat ramps. The trends by mode are shown in Figure 2. The dark blue line is the most likely estimate and the light blue area represents the uncertainty.
+
+```{r fig2, fig.width=9, fig.height=6.5, echo=FALSE, message=FALSE, warning = FALSE}
+		par(mfrow=c(3,1), mgp = c(2.5, .5, 0), mar=c(4,4,2,2), oma=c(.5,3,.5,1))  
+		options(scipen=999)
+		plotfun3_c(results=results_Mshore_cnt, main="Shore-based, all areas")
+			mtext(bquote(italic(.(cntname)~"County")), side=3, line=0, adj=0, cex=1.5, outer=FALSE)
+		plotfun3_c(results=results_Mhire_cnt, main="For-hire, all areas")
+		plotfun3_c(results=results_Mpriv_cnt, main="Private/rental, all areas")
+			mtext(expression(italic("Source: NMFS MRIP Database")), side=1, line=3, adj=1, outer=FALSE)
+```
+
+**Figure 2. Trends in `r tmplist$county` County fishing effort by mode, for all seasons.** The dark blue line is the most likely number of trips and the light blue area shows the uncertainty. Absence of uncertainty can indicate sparse data.
+
+### Summary
+This summary shows that how marine recreational fishing in `r tmplist$county` County differs by mode over time and varies by season. This information should help inform the way fishing and especially certain modes of fishing are viewed, and it may also inform local governance decisions that affect marine recreational fishing. 
+
